@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinBot: Asystent Finansów Młodego Freelancera</title>
+
+<link rel="stylesheet" href="finbot_styles.css">
+
+</head>
+
+<body>
+<div class="container">
+<h1>🚀 FinBot: Generator Rachunków Freelancerskich</h1>
+
+<div id="apiStatus" class="api-status">
+    🔄 Sprawdzanie połączenia z API...
+</div>
+
+<div class="card" id="dashboardSection">
+    <h3>📈 Twój Finansowy Dashboard</h3>
+    <p>Pamiętaj, aby zawsze odkładać część zarobionych pieniędzy na przyszłe opłaty!</p>
+    
+    <div class="dashboard-metrics">
+        <div class="metric-box rev-box">
+            <p style="margin: 0; font-size: 12px; color: #3498db;">PRZYCHÓD Z OSTATNICH MIESIĘCY (Brutto)</p>
+            <strong id="monthlyRevenue" style="color: #3498db;">Ładuję...</strong>
+        </div>
+        <div class="metric-box tax-box">
+            <p style="margin: 0; font-size: 12px; color: #27ae60;">SUGEROWANA KWOTA DO ODŁOŻENIA</p>
+            <strong id="simulatedTax" style="color: #27ae60;">...</strong>
+        </div>
+        <div class="metric-box jobs-box">
+            <p style="margin: 0; font-size: 12px; color: #f39c12;">LICZBA WYGENEROWANYCH RACHUNKÓW</p>
+            <strong id="jobsCount" style="color: #f39c12;">...</strong>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <h4>Ostatnio Wygenerowane Rachunki:</h4>
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>Numer</th>
+                    <th>Data</th>
+                    <th>Kwota Brutto</th>
+                    <th>Klient</th>
+                    <th>Akcja</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+    <button type="button" onclick="loadDashboardData()" style="background: #9b59b6;">🔄 Odśwież Dane Finansowe</button>
+</div>
+<div id="loadingMessage" class="loading">
+    <div class="status-icon">🔄</div>
+    <strong>Przetwarzam Rachunek...</strong><br>
+    Wysyłam dane do API...
+</div>
+
+<div id="successMessage" class="success">
+    <div class="status-icon">✅</div>
+    <strong>Rachunek wygenerowany pomyślnie!</strong><br>
+    <span id="successDetails"></span>
+    <div id="downloadSection" style="margin-top: 15px;"></div>
+</div>
+
+<div id="errorMessage" class="error">
+    <div class="status-icon">❌</div>
+    <strong>Wystąpił błąd</strong><br>
+    <span id="errorText">Spróbuj ponownie za chwilę.</span>
+</div>
+
+<form id="invoiceForm" class="card">
+    <div class="form-section">
+        <h3>📋 Informacje o Rachunku</h3>
+        <div class="form-group">
+            <label>Numer Rachunku</label>
+            <input type="text" id="invoice_number" value="Rach/2024/001" required>
+        </div>
+        <div class="form-group">
+            <label>Data wystawienia</label>
+            <input type="date" id="issue_date" required>
+        </div>
+        <div class="form-group">
+            <label>Data sprzedaży/wykonania usługi</label>
+            <input type="date" id="sale_date" required>
+        </div>
+        <div class="form-group">
+            <label>Miejsce wystawienia</label>
+            <input type="text" id="place" value="Warszawa" required>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>🏢 Sprzedawca (Ty)</h3>
+        <div class="form-group">
+            <label>Nazwa (Imię i Nazwisko / Nazwa Firmy)</label>
+            <input type="text" id="seller_company" value="Jan Kowalski (Student)" required>
+        </div>
+        <div class="form-group">
+            <label>NIP (Opcjonalnie dla osób fizycznych)</label>
+            <input type="text" id="seller_nip" value="">
+        </div>
+        <div class="form-group">
+            <label>Ulica</label>
+            <input type="text" id="seller_street" value="ul. Wymyślona 1" required>
+        </div>
+        <div class="form-group">
+            <label>Kod pocztowy</label>
+            <input type="text" id="seller_postal" value="00-001" required>
+        </div>
+        <div class="form-group">
+            <label>Miasto</label>
+            <input type="text" id="seller_city" value="Warszawa" required>
+        </div>
+        </div>
+
+    <div class="form-section">
+        <h3>👥 Nabywca (Klient)</h3>
+        <div class="form-group">
+            <label>Nazwa firmy / Imię i Nazwisko</label>
+            <input type="text" id="buyer_company" value="Firma Klient Sp. z o.o." required>
+        </div>
+        <div class="form-group">
+            <label>NIP (Wymagany dla firm)</label>
+            <input type="text" id="buyer_nip" value="9876543210" required>
+            <div id="buyerNipError" class="validation-error">❌ Niepoprawny numer NIP</div>
+            <div id="buyerNipSuccess" class="validation-success">✅ Poprawny NIP</div>
+        </div>
+        <div class="form-group">
+            <label>Ulica</label>
+            <input type="text" id="buyer_street" value="al. Klientowska 10" required>
+        </div>
+        <div class="form-group">
+            <label>Kod pocztowy</label>
+            <input type="text" id="buyer_postal" value="50-002" required>
+        </div>
+        <div class="form-group">
+            <label>Miasto</label>
+            <input type="text" id="buyer_city" value="Wrocław" required>
+        </div>
+        </div>
+
+    <div class="form-section">
+        <h3>📦 Pozycje Rachunku</h3>
+        <p>FinBot zakłada stawkę **VAT 0%** (Zwolnienie Podmiotowe). Pamiętaj, że możesz ją zmienić.</p>
+        <div class="table-container">
+            <table id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Nazwa Usługi</th>
+                        <th>Jm.</th>
+                        <th>Ilość</th>
+                        <th>Cena netto</th>
+                        <th>VAT %</th>
+                        <th>Wartość netto</th>
+                        <th>Wartość brutto</th>
+                        <th>Usuń</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="item_name" value="Usługa programowania (Projekt Hack Heroes)" required></td>
+                        <td><input type="text" class="item_unit" value="usługa" required></td>
+                        <td><input type="number" class="item_qty" value="1" min="0" step="0.5" required></td>
+                        <td><input type="number" class="item_price" value="150" min="0" step="0.01" required></td>
+                        <td><input type="number" class="item_vat" value="0" min="0" max="23" required></td>
+                        <td><span class="item_net_value">150.00</span> zł</td>
+                        <td><span class="item_gross_value">150.00</span> zł</td>
+                        <td><button type="button" class="removeItem">❌</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" id="addItem">➕ Dodaj pozycję</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Sumy:</strong>
+            <div>Netto: <span id="totalNetto">150.00</span> zł</div>
+            <div>VAT: <span id="totalVat">0.00</span> zł</div>
+            <div><strong>Brutto: <span id="totalBrutto">150.00</span> zł</strong></div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>💳 Płatność i uwagi</h3>
+        <div class="form-group">
+            <label>Sposób płatności</label>
+            <select id="payment_method">
+                <option value="Przelew bankowy">Przelew bankowy</option>
+                <option value="Gotówka">Gotówka</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Numer konta bankowego</label>
+            <input type="text" id="bank_account" value="12 3456 7890 1234 5678 9012 3456">
+        </div>
+        <div class="form-group">
+            <label>Uwagi</label>
+            <textarea id="notes" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; resize: vertical;">Prosimy o płatność w terminie 14 dni. Sprzedawca jest osobą fizyczną (zwolnienie podmiotowe z VAT).</textarea>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button type="submit" style="background: #27ae60;">
+            📤 Wygeneruj Rachunek PDF
+        </button>
+    </div>
+</form>
+
+<div class="academy-section">
+    <h4>🎓 Akademia FinBota: Szybkie Lekcje</h4>
+    <ul>
+        <li>**Netto vs. Brutto:** Jeśli jesteś osobą fizyczną na umowie, kwota **Brutto** to kwota, którą dostajesz, a z której Klient potrąca zaliczkę na podatek. **Netto** to kwota "na rękę".</li>
+        <li>**Działalność Nierejestrowana (DN):** Jeśli nie masz firmy i Twoje przychody są małe, możesz działać jako DN. Nie musisz mieć NIP ani VAT.</li>
+        <li>**Zwolnienie Podmiotowe (VAT):** Większość początkujących jest z niego zwolniona (stąd proponowany VAT 0%).</li>
+        <li>**Backup:** FinBot automatycznie tworzy backup każdego rachunku na Twoim serwerze!</li>
+    </ul>
+</div>
+</div>
+
+<script src="finbot_scripts.js"></script>
+
+</body>
+</html>
